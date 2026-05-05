@@ -1,0 +1,46 @@
+# logpipe example configuration
+# Copy this file to logpipe.yaml and adjust to your environment.
+
+server:
+  addr: "0.0.0.0"
+  port: 8080
+
+sources:
+  - name: web-container
+    type: docker
+    labels:
+      service: web
+      env: production
+
+  - name: worker-container
+    type: docker
+    labels:
+      service: worker
+      env: production
+
+  - name: local-file
+    type: file
+    labels:
+      source: host
+
+sinks:
+  - name: stdout-debug
+    type: stdout
+    target: ""
+    options:
+      format: json
+
+  - name: remote-http
+    type: http
+    target: "https://logs.example.com/ingest"
+    options:
+      timeout: "5s"
+      batch_size: "100"
+      auth_header: "Bearer YOUR_TOKEN_HERE"
+
+  - name: file-archive
+    type: file
+    target: "/var/log/logpipe/archive.log"
+    options:
+      rotate: "daily"
+      max_size_mb: "256"
