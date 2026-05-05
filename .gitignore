@@ -1,0 +1,12 @@
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+.env
+*.prof
+Thumbs.db
+*.out
+vendor/
+*~
+*.swo
