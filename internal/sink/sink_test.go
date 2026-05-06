@@ -68,6 +68,24 @@ func TestTCPSink_WriteAndClose(t *testing.T) {
 	}
 }
 
+func TestTCPSink_Name(t *testing.T) {
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("failed to start listener: %v", err)
+	}
+	defer ln.Close()
+
+	s, err := NewTCPSink("tcp-named", ln.Addr().String())
+	if err != nil {
+		t.Fatalf("NewTCPSink: %v", err)
+	}
+	defer s.Close()
+
+	if got := s.Name(); got != "tcp-named" {
+		t.Errorf("expected 'tcp-named', got %q", got)
+	}
+}
+
 func TestNewTCPSink_DialFailure(t *testing.T) {
 	_, err := NewTCPSink("bad", "127.0.0.1:1")
 	if err == nil {
