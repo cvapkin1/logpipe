@@ -85,3 +85,17 @@ func TestRule_Match_Combined(t *testing.T) {
 		t.Error("expected combined rule to fail on level")
 	}
 }
+
+func TestRule_Match_EmptyRule(t *testing.T) {
+	// A rule with no criteria (empty level, contains, and pattern) should
+	// match every line regardless of level.
+	r, err := NewRule("", "", "")
+	if err != nil {
+		t.Fatalf("NewRule: %v", err)
+	}
+	for _, level := range []Level{LevelDebug, LevelInfo, LevelWarn, LevelError, LevelUnknown} {
+		if !r.Match("any log line", level) {
+			t.Errorf("expected empty rule to match at level %v", level)
+		}
+	}
+}
