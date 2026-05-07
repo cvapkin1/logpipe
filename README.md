@@ -56,6 +56,16 @@ logpipe --config logpipe.yaml --dry-run
 
 ---
 
+## Environment Variables
+
+| Variable | Description | Default |
+|---|---|---|
+| `LOG_TOKEN` | Bearer token used for HTTP output authorization | *(none)* |
+| `LOGPIPE_CONFIG` | Path to config file (overridden by `--config` flag) | `logpipe.yaml` |
+| `LOGPIPE_LOG_LEVEL` | Internal log verbosity (`debug`, `info`, `warn`, `error`) | `info` |
+
+---
+
 ## Contributing
 
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
