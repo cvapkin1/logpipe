@@ -89,3 +89,24 @@ sinks: []
 		t.Fatal("expected duplicate name error, got nil")
 	}
 }
+
+func TestLoad_EmptySources(t *testing.T) {
+	yaml := `
+server:
+  addr: "127.0.0.1"
+  port: 4040
+sources: []
+sinks:
+  - name: file-sink
+    type: file
+    target: "/tmp/out.log"
+`
+	path := writeTemp(t, yaml)
+	cfg, err := config.Load(path)
+	if err != nil {
+		t.Fatalf("unexpected error for empty sources: %v", err)
+	}
+	if len(cfg.Sources) != 0 {
+		t.Errorf("expected 0 sources, got %d", len(cfg.Sources))
+	}
+}
