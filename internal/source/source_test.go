@@ -114,3 +114,29 @@ func TestNewTCPSource_BadAddress(t *testing.T) {
 		t.Fatal("expected error for invalid address")
 	}
 }
+
+func TestTCPSource_ContextCancellation(t *testing.T) {
+	s, err := NewTCPSource("tcp-cancel", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("NewTCPSource: %v", err)
+	}
+	defer s.Close()
+
+	out := make(chan string, 10)
+	ctx, cancel := context.WithCancel(context.Background())
+
+	if err := s.Start(ctx, out); err != nil {
+		t.Fatalf("Start: %v", err)
+	}
+
+	// Cancel the context and verify the source stops accepting connections.
+	cancel()
+
+	// Allow a brief moment for the goroutine to react to cancellation.
+	time.Sleep(100 * time.Millisecond)
+
+	_, dialErr := net.Dial("tcp", s.listener.Addr().String())
+	if dialErr == nil {
+		t.Fatal("expected connection to fail after context cancellation")
+	}
+}
