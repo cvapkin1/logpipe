@@ -1,46 +1,52 @@
 # logpipe example configuration
-# Copy this file to logpipe.yaml and adjust to your environment.
-
-server:
-  addr: "0.0.0.0"
-  port: 8080
-
+# --------------------------------
+# Sources define where log lines are ingested from.
 sources:
-  - name: web-container
-    type: docker
-    labels:
-      service: web
-      env: production
+  - name: stdin
+    type: stdin
 
-  - name: worker-container
-    type: docker
-    labels:
-      service: worker
-      env: production
+  - name: app-tcp
+    type: tcp
+    address: ":5170"
 
-  - name: local-file
-    type: file
-    labels:
-      source: host
-
+# Sinks define where log lines are forwarded to.
 sinks:
-  - name: stdout-debug
+  - name: stdout
     type: stdout
-    target: ""
-    options:
-      format: json
 
-  - name: remote-http
-    type: http
-    target: "https://logs.example.com/ingest"
-    options:
-      timeout: "5s"
-      batch_size: "100"
-      auth_header: "Bearer YOUR_TOKEN_HERE"
+  - name: remote
+    type: tcp
+    address: "logs.example.com:5171"
 
-  - name: file-archive
-    type: file
-    target: "/var/log/logpipe/archive.log"
-    options:
-      rotate: "daily"
-      max_size_mb: "256"
+# Routes wire sources to sinks with optional filter rules.
+routes:
+  - source: stdin
+    destination: stdout
+    filters:
+      - min_level: info
+
+  - source: app-tcp
+    destination: remote
+    filters:
+      - min_level: warn
+      - contains: "ERROR"
+
+# Rate limiting controls maximum log lines forwarded per second
+# per route. Excess lines are dropped and counted in metrics.
+rate_limiting:
+  enabled: true
+  default_rate: 1000        # lines per second
+  default_interval: "1s"   # window duration (Go duration string)
+
+  # Per-route overrides (matched by source name)
+  overrides:
+    - source: app-tcp
+      rate: 500
+      interval: "1s"
+
+# Global pipeline settings
+pipeline:
+  buffer_capacity: 4096
+  backpressure:
+    max_retries: 3
+    retry_delay: "50ms"
