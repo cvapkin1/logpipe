@@ -110,3 +110,16 @@ sinks:
 		t.Errorf("expected 0 sources, got %d", len(cfg.Sources))
 	}
 }
+
+func TestLoad_InvalidYAML(t *testing.T) {
+	invalid := `
+server:
+  addr: "0.0.0.0"
+  port: [not, a, number]
+`
+	path := writeTemp(t, invalid)
+	_, err := config.Load(path)
+	if err == nil {
+		t.Fatal("expected parse error for invalid YAML, got nil")
+	}
+}
